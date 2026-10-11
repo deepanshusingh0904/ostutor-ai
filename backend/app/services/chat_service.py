@@ -46,11 +46,9 @@ def lesson_turn(messages: list[Message]) -> tuple[int, bool, str]:
 
 
 def _turn_plan(turn: int) -> str:
-    if turn >= len(prompts.STAGE_GROUPS):
-        return ("The full lesson is complete. Answer follow-up questions briefly, then recommend the next topic or "
-                "offer a quiz or viva.")
-    stages = ", ".join(prompts.STAGE_GROUPS[turn])
-    return f"Teach these stages now: {stages}. Earlier turns already covered the preceding stages."
+    return ("If the student's latest message names a new topic or asks a new question, write the COMPLETE lesson in the "
+            "format above. If it is a follow-up on the current lesson, answer just that follow-up. "
+            "Finish with the Continue Learning question.")
 
 
 def build_system_prompt(conv: Conversation, user: User, chunks: list[RetrievedChunk], turn: int) -> str:
