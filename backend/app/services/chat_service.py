@@ -212,7 +212,10 @@ def _offline_text(db: Session, conv: Conversation, topic: str, user_text: str, c
         docs = [d.title for d in db.query(Document).filter(Document.status == "ready").limit(5).all()]
         return offline.no_context_message(topic, docs)
     if continuing:
-        pool = offline.fact_pool(conv.topic or user_text, chunks, 12)[4:9]
+        last_ai = next((m for m in reversed(messages) if m.role == "assistant"), None)
+        done_blocks = (last_ai.content or "").count("### Going deeper") if last_ai else 0
+        start = 4 + done_blocks * 5
+        pool = offline.fact_pool(conv.topic or user_text, chunks, 60)[start:start + 5]
         if not pool:
             return "That covers everything the approved material says about this. Ask me a follow-up or try a quiz!"
         bullets = "\n".join(f"- {p['sentence']} [{p['idx']}]" for p in pool)
