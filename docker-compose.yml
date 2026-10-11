@@ -1,0 +1,27 @@
+services:
+  backend:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: sqlite:////app/data/ostutor.db
+      UPLOAD_DIR: /app/data/uploads
+      CHROMA_DIR: /app/data/chroma
+      CORS_ORIGINS: http://localhost:3000
+    ports: ["8000:8000"]
+    volumes: ["ostutor-data:/app/data"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports: ["3000:3000"]
+    depends_on: [backend]
+
+volumes:
+  ostutor-data:

@@ -1,0 +1,106 @@
+@import "katex/dist/katex.min.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 22% 97%;
+    --foreground: 224 32% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 32% 12%;
+    --secondary: 220 18% 93%;
+    --secondary-foreground: 224 32% 16%;
+    --muted: 220 18% 94%;
+    --muted-foreground: 222 10% 40%;
+    --accent: 40 94% 52%;
+    --accent-foreground: 36 90% 14%;
+    --primary: 172 74% 24%;
+    --primary-foreground: 0 0% 100%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 34%;
+    --border: 220 16% 87%;
+    --ring: 172 74% 30%;
+    --radius: 0.875rem;
+    --glass: 0 0% 100% / 0.72;
+  }
+
+  .dark {
+    --background: 224 30% 7%;
+    --foreground: 210 24% 94%;
+    --card: 224 26% 10.5%;
+    --card-foreground: 210 24% 94%;
+    --secondary: 224 22% 15%;
+    --secondary-foreground: 210 24% 94%;
+    --muted: 224 22% 14%;
+    --muted-foreground: 218 12% 64%;
+    --accent: 40 92% 58%;
+    --accent-foreground: 36 90% 12%;
+    --primary: 168 66% 48%;
+    --primary-foreground: 224 32% 8%;
+    --destructive: 0 70% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 56% 48%;
+    --border: 224 18% 19%;
+    --ring: 168 66% 48%;
+    --glass: 224 26% 12% / 0.62;
+  }
+
+  * { @apply border-border; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-background text-foreground antialiased font-sans;
+    font-feature-settings: "cv11", "ss01";
+  }
+  h1, h2, h3 { text-wrap: balance; }
+  :focus-visible { @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background; }
+  ::selection { background: hsl(var(--primary) / 0.25); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+}
+
+@layer components {
+  .glass {
+    background: hsl(var(--glass));
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    @apply border border-border/70;
+  }
+  .scroll-thin { scrollbar-width: thin; scrollbar-color: hsl(var(--border)) transparent; }
+  .scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scroll-thin::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 999px; }
+
+  /* Rendered markdown */
+  .prose-ostutor { @apply text-[15px] leading-7; }
+  .prose-ostutor > * + * { @apply mt-4; }
+  .prose-ostutor h1 { @apply font-display text-2xl font-semibold mt-6; }
+  .prose-ostutor h2 { @apply font-display text-xl font-semibold mt-6; }
+  .prose-ostutor h3 { @apply font-display text-lg font-semibold mt-5 text-foreground; }
+  .prose-ostutor p { @apply text-foreground/90; }
+  .prose-ostutor ul { @apply list-disc pl-6 space-y-1.5; }
+  .prose-ostutor ol { @apply list-decimal pl-6 space-y-1.5; }
+  .prose-ostutor li::marker { @apply text-primary; }
+  .prose-ostutor a { @apply text-primary underline underline-offset-4; }
+  .prose-ostutor blockquote { @apply border-l-4 border-primary/50 bg-primary/5 rounded-r-lg py-2 px-4 text-foreground/80; }
+  .prose-ostutor hr { @apply my-6 border-border; }
+  .prose-ostutor table { @apply w-full text-sm border-collapse; }
+  .prose-ostutor th { @apply bg-muted text-left font-semibold px-3 py-2 border border-border; }
+  .prose-ostutor td { @apply px-3 py-2 border border-border align-top; }
+  .prose-ostutor :not(pre) > code { @apply rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.85em]; }
+  .prose-ostutor .katex-display { @apply overflow-x-auto overflow-y-hidden py-1; }
+  .prose-ostutor strong { @apply font-semibold text-foreground; }
+}
+
+/* highlight.js theme driven by CSS variables so it follows light/dark */
+.hljs { color: hsl(var(--foreground)); background: transparent; }
+.hljs-comment, .hljs-quote { color: hsl(var(--muted-foreground)); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in { color: hsl(var(--primary)); font-weight: 500; }
+.hljs-string, .hljs-attr, .hljs-addition { color: hsl(152 50% 38%); }
+.dark .hljs-string, .dark .hljs-attr, .dark .hljs-addition { color: hsl(152 55% 60%); }
+.hljs-number, .hljs-literal, .hljs-symbol { color: hsl(30 80% 44%); }
+.dark .hljs-number, .dark .hljs-literal, .dark .hljs-symbol { color: hsl(35 90% 64%); }
+.hljs-title, .hljs-function, .hljs-class .hljs-title { color: hsl(222 70% 50%); }
+.dark .hljs-title, .dark .hljs-function, .dark .hljs-class .hljs-title { color: hsl(214 90% 72%); }
+.hljs-deletion, .hljs-meta { color: hsl(0 65% 52%); }
