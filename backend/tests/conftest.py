@@ -12,6 +12,7 @@ os.environ.update(
     LLM_API_KEY="",
     OFFLINE_STREAM_DELAY="0",
     RATE_LIMIT_PER_MINUTE="0",
+    AUTO_INGEST_COURSE_DOCS="false",
     ADMIN_EMAIL="admin@ostutor.ai",
     ADMIN_PASSWORD="AdminPass123!",
 )

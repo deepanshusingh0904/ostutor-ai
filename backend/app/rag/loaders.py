@@ -38,7 +38,7 @@ def virtual_pages(text: str, size: int = VIRTUAL_PAGE_CHARS) -> list[PageText]:
     return pages
 
 
-def _load_pdf(path: Path) -> list[PageText]:
+def _load_pdf_pypdf(path: Path) -> list[PageText]:
     from pypdf import PdfReader
 
     reader = PdfReader(str(path))
@@ -50,6 +50,27 @@ def _load_pdf(path: Path) -> list[PageText]:
             text = ""
         pages.append(PageText(i + 1, text))
     return pages
+
+
+def _load_pdf(path: Path) -> list[PageText]:
+    """PyMuPDF keeps word spacing and reading order on slide-style PDFs (pypdf glues words together)."""
+    try:
+        import pymupdf
+    except ImportError:
+        return _load_pdf_pypdf(path)
+    try:
+        pymupdf.TOOLS.mupdf_display_errors(False)
+        pages = []
+        with pymupdf.open(str(path)) as pdf:
+            for i, page in enumerate(pdf):
+                try:
+                    text = page.get_text("text") or ""
+                except Exception:  # noqa: BLE001 - damaged page, skip it
+                    text = ""
+                pages.append(PageText(i + 1, text))
+        return pages
+    except Exception:  # noqa: BLE001 - unreadable for MuPDF, try the pure-python reader
+        return _load_pdf_pypdf(path)
 
 
 def _load_docx(path: Path) -> list[PageText]:

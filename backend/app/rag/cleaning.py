@@ -8,6 +8,9 @@ from collections import Counter
 from app.rag.loaders import PageText
 
 _CONTROL = re.compile(r"[\x00-\x08\x0b\x0e-\x1f\x7f]")
+# Slide decks exported from PowerPoint carry the Wingdings bullet as a letter ("qFor ...", "q Textbook").
+_BULLET_GLYPH = re.compile(r"^[ \t]*[qØ§](?:[ \t]+(?=\S)|(?=[A-Z]))", re.MULTILINE)
+_FOOTER_LINE = re.compile(r"^\s*(?:\d{1,3}|\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|(?:module|unit|lecture)\s*\d+)\s*$", re.IGNORECASE)
 
 
 def join_wrapped_lines(text: str) -> str:
@@ -58,8 +61,24 @@ def strip_repeated_lines(pages: list[PageText]) -> list[PageText]:
     return cleaned
 
 
+def strip_page_footers(pages: list[PageText]) -> list[PageText]:
+    """Drop slide numbers, dates and 'Module 3' labels that sit at the bottom of a page."""
+    cleaned = []
+    for page in pages:
+        lines = page.text.rstrip().split("\n")
+        removed = 0
+        while lines and removed < 4 and _FOOTER_LINE.match(lines[-1]):
+            lines.pop()
+            removed += 1
+        cleaned.append(PageText(page.page, "\n".join(lines)))
+    return cleaned
+
+
 def clean_pages(pages: list[PageText], file_type: str) -> list[PageText]:
     reflow = file_type in {"pdf"}
+    if file_type in {"pdf", "pptx"}:
+        pages = [PageText(p.page, _BULLET_GLYPH.sub("• ", p.text)) for p in pages]
+        pages = strip_page_footers(pages)
     pages = strip_repeated_lines(pages)
     cleaned = [PageText(p.page, clean_text(p.text, reflow=reflow)) for p in pages]
     return [p for p in cleaned if p.text]

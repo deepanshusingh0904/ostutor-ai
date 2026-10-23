@@ -61,6 +61,8 @@ export const api = {
     register: (email: string, password: string, full_name: string) =>
       request<TokenResponse>("/api/auth/register", { method: "POST", json: { email, password, full_name }, auth: false }),
     me: () => request<User>("/api/auth/me"),
+    config: () => request<{ google_client_id: string }>("/api/auth/config", { auth: false }),
+    google: (credential: string) => request<TokenResponse>("/api/auth/google", { method: "POST", json: { credential }, auth: false }),
   },
   users: {
     update: (data: Partial<Pick<User, "full_name" | "bio" | "university">>) => request<User>("/api/users/me", { method: "PUT", json: data }),

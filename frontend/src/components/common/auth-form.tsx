@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -8,6 +8,19 @@ import { persistToken, useAuthStore } from "@/lib/auth-store";
 import { errorMessage } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (o: { client_id: string; callback: (r: { credential: string }) => void }) => void;
+          renderButton: (el: HTMLElement, o: Record<string, unknown>) => void;
+        };
+      };
+    };
+  }
+}
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
@@ -20,6 +33,45 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const isLogin = mode === "login";
+  const googleRef = useRef<HTMLDivElement>(null);
+  const [googleId, setGoogleId] = useState("");
+
+  const finish = (res: Awaited<ReturnType<typeof api.auth.login>>) => {
+    persistToken(res.access_token);
+    setUser(res.user);
+    setReady(true);
+    if (res.user.settings?.theme) setTheme(res.user.settings.theme);
+    router.replace("/dashboard");
+  };
+
+  // Google sign-in is optional: the button only appears if the server has a client id.
+  useEffect(() => {
+    let cancelled = false;
+    api.auth.config().then((c) => !cancelled && setGoogleId(c.google_client_id || "")).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!googleId) return;
+    const render = () => {
+      if (!window.google || !googleRef.current) return;
+      window.google.accounts.id.initialize({
+        client_id: googleId,
+        callback: async ({ credential }) => {
+          setError("");
+          try { finish(await api.auth.google(credential)); } catch (err) { setError(errorMessage(err)); }
+        },
+      });
+      window.google.accounts.id.renderButton(googleRef.current, { theme: "outline", size: "large", width: 320, text: "continue_with" });
+    };
+    if (window.google) { render(); return; }
+    const tag = document.createElement("script");
+    tag.src = "https://accounts.google.com/gsi/client";
+    tag.async = true;
+    tag.onload = render;
+    document.head.appendChild(tag);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [googleId]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,11 +83,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     setLoading(true);
     try {
       const res = isLogin ? await api.auth.login(email, password) : await api.auth.register(email, password, fullName);
-      persistToken(res.access_token);
-      setUser(res.user);
-      setReady(true);
-      if (res.user.settings?.theme) setTheme(res.user.settings.theme);
-      router.replace("/dashboard");
+      finish(res);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -76,6 +124,14 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           {isLogin ? "Sign in" : "Create account"}
         </Button>
       </form>
+      {googleId && (
+        <div className="mt-6">
+          <div className="mb-4 flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" />
+          </div>
+          <div ref={googleRef} className="flex justify-center" />
+        </div>
+      )}
       <p className="mt-6 text-sm text-muted-foreground">
         {isLogin ? "New here? " : "Already registered? "}
         <Link href={isLogin ? "/register" : "/login"} className="font-medium text-primary underline-offset-4 hover:underline">

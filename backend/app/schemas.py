@@ -49,6 +49,14 @@ class TokenResponse(BaseModel):
     user: UserOut
 
 
+class GoogleLoginRequest(BaseModel):
+    credential: str = Field(min_length=20)
+
+
+class AuthConfig(BaseModel):
+    google_client_id: str = ""
+
+
 class ProfileUpdate(BaseModel):
     full_name: str | None = Field(default=None, min_length=2, max_length=120)
     bio: str | None = Field(default=None, max_length=1000)

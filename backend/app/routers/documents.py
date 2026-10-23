@@ -110,6 +110,8 @@ def delete_document(document_id: int, _: User = Depends(require_admin), db: Sess
         remove_document_vectors(document.id)
     except Exception:  # noqa: BLE001
         logger.exception("Could not remove vectors for document %s", document_id)
-    Path(document.stored_path).unlink(missing_ok=True)
+    stored = Path(document.stored_path)
+    if settings.upload_dir.resolve() in stored.resolve().parents:  # never delete bundled course files
+        stored.unlink(missing_ok=True)
     db.delete(document)
     db.commit()

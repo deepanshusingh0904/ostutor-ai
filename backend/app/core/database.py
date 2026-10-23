@@ -12,7 +12,8 @@ from app.core.config import get_settings
 settings = get_settings()
 
 _connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
-engine = create_engine(settings.database_url, connect_args=_connect_args, pool_pre_ping=True)
+_pool_args = {} if settings.database_url.startswith("sqlite") else {"pool_recycle": 280, "pool_size": 5, "max_overflow": 5}
+engine = create_engine(settings.database_url, connect_args=_connect_args, pool_pre_ping=True, **_pool_args)
 
 
 @event.listens_for(Engine, "connect")

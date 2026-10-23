@@ -15,6 +15,7 @@ from app.core.database import SessionLocal, init_db
 from app.core.security import hash_password
 from app.middleware import RateLimitMiddleware, RequestContextMiddleware
 from app.models import DEFAULT_SETTINGS, User
+from app.services import bootstrap
 from app.routers import admin, auth, bookmarks, chat, documents, flashcards, progress, quiz, search, study, users, viva
 
 settings = get_settings()
@@ -40,6 +41,7 @@ async def lifespan(_: FastAPI):
     seed_admin()
     if settings.is_production and settings.secret_key.startswith("change-me"):
         logger.warning("SECRET_KEY is still the default value - set a strong secret in production!")
+    bootstrap.start_in_background()  # index bundled course_docs and repair any missing vectors
     yield
 
 

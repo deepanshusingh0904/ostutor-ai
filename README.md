@@ -160,3 +160,20 @@ Streaming events: `meta`, `citations`, `token`, `done`, `error` (one JSON object
 * **The tutor says it couldn't find anything** - upload documents that cover the topic, or lower `MIN_SIMILARITY`. Use the admin *Retrieval inspector* to see raw scores.
 * **A scanned PDF fails to index** - it has no text layer; run OCR on it first.
 * **Model download is slow or blocked** - set `EMBEDDING_BACKEND=hash`.
+
+
+## Sign in with Google and a hosted database
+
+* **Google:** create an OAuth "Web application" client at console.cloud.google.com/apis/credentials, add your site address
+  as an authorised JavaScript origin, and set `GOOGLE_CLIENT_ID` on the backend. The button appears by itself.
+* **Database:** set `DATABASE_URL` to a Postgres address (Neon is free). `postgres://` and `postgresql://` both work.
+  Without it the app keeps using the local SQLite file.
+* **Vectors (optional):** set `CHROMA_API_KEY`, `CHROMA_TENANT` and `CHROMA_DATABASE` to use Chroma Cloud so uploaded
+  documents survive redeploys.
+
+## Built-in course material
+
+PDF, DOCX, PPTX, TXT and Markdown files placed in `backend/course_docs/` are indexed automatically every time the backend
+starts. Files that are already indexed are skipped, and if the search index was wiped (for example by a redeploy on a
+free host) it is rebuilt from these files. Deleting one of them in the admin panel removes it from the library but never
+deletes the file itself.
